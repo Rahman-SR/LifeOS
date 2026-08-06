@@ -1,11 +1,15 @@
 import { z } from 'zod';
 
-import { parseLocalDate, parseLocalDateTime } from './task-date-utils';
+import {
+  isLocalDateTimeInFuture,
+  parseLocalDate,
+  parseLocalDateTime,
+} from './task-date-utils';
 import { toDatabaseTime } from './task-date-utils';
 import type { TaskMutationValues } from './task-types';
 
-export const taskFormSchema = z
-  .object({
+export function createTaskFormSchema(now: () => Date = () => new Date()) {
+  return z.object({
     categoryId: z.string(),
     description: z.string().trim().max(2000, 'Description must be 2,000 characters or fewer.'),
     dueDate: z.string().refine((value) => !value || Boolean(parseLocalDate(value)), 'Choose a valid date.'),
@@ -17,8 +21,7 @@ export const taskFormSchema = z
       .trim()
       .min(1, 'Task title is required.')
       .max(240, 'Task title must be 240 characters or fewer.'),
-  })
-  .superRefine((values, context) => {
+  }).superRefine((values, context) => {
     if (values.dueTime && !values.dueDate) {
       context.addIssue({
         code: 'custom',
@@ -32,14 +35,13 @@ export const taskFormSchema = z
     if (!values.dueDate || !values.dueTime) {
       context.addIssue({
         code: 'custom',
-        message: 'A reminder needs both a due date and due time.',
+        message: 'Choose a date and time for the reminder.',
         path: ['reminderEnabled'],
       });
       return;
     }
 
-    const reminderDate = parseLocalDateTime(values.dueDate, values.dueTime);
-    if (!reminderDate || reminderDate.getTime() <= Date.now()) {
+    if (!isLocalDateTimeInFuture(values.dueDate, values.dueTime, now())) {
       context.addIssue({
         code: 'custom',
         message: 'Reminder time must be in the future.',
@@ -47,6 +49,9 @@ export const taskFormSchema = z
       });
     }
   });
+}
+
+export const taskFormSchema = createTaskFormSchema();
 
 export type TaskFormValues = z.infer<typeof taskFormSchema>;
 

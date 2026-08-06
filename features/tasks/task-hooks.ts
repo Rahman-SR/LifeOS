@@ -42,20 +42,6 @@ async function syncReminder(task: TaskWithCategory): Promise<string | null> {
   }
 }
 
-async function clearFailedReminder(
-  userId: string,
-  task: TaskWithCategory,
-  warning: string | null,
-): Promise<TaskMutationResult> {
-  if (!warning || !task.reminder_at) return { reminderWarning: warning, task };
-
-  const updatedTask = await updateTask(userId, task.id, { reminder_at: null }).catch(() => ({
-    ...task,
-    reminder_at: null,
-  }));
-  return { reminderWarning: warning, task: updatedTask };
-}
-
 export function useTaskCategories(userId: string | undefined) {
   return useQuery({
     enabled: Boolean(userId),
@@ -93,9 +79,10 @@ export function useCreateTaskMutation(userId: string) {
   return useMutation({
     mutationFn: async (values: TaskMutationValues) => {
       const task = await createTask(userId, values);
-      return clearFailedReminder(userId, task, await syncReminder(task));
+      const result = { reminderWarning: await syncReminder(task), task };
+      await queryClient.invalidateQueries({ queryKey: taskKeys.all(userId) }).catch(() => undefined);
+      return result;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: taskKeys.all(userId) }),
   });
 }
 
@@ -104,9 +91,10 @@ export function useUpdateTaskMutation(userId: string, taskId: string) {
   return useMutation({
     mutationFn: async (values: TaskMutationValues) => {
       const task = await updateTask(userId, taskId, values);
-      return clearFailedReminder(userId, task, await syncReminder(task));
+      const result = { reminderWarning: await syncReminder(task), task };
+      await queryClient.invalidateQueries({ queryKey: taskKeys.all(userId) }).catch(() => undefined);
+      return result;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: taskKeys.all(userId) }),
   });
 }
 

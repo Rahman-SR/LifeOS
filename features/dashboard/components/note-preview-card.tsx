@@ -2,22 +2,23 @@ import { Clock3, NotebookPen } from 'lucide-react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText, Card } from '@/components/ui';
-import type { MockNote } from '@/features/dashboard/dashboard-mock-data';
+import { formatNoteUpdatedAt, getNotePreview, getNoteTitle, type Note } from '@/features/notes';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { radii, sizing, spacing } from '@/theme';
 
 type NotePreviewCardProps = {
-  note: MockNote;
+  note: Note;
   onPress: () => void;
 };
 
 export function NotePreviewCard({ note, onPress }: NotePreviewCardProps) {
   const { colors } = useAppTheme();
+  const title = getNoteTitle(note);
 
   return (
     <Pressable
-      accessibilityHint="Note editing will be available in a later phase"
-      accessibilityLabel={`Open recent note: ${note.title}`}
+      accessibilityHint="Opens note details"
+      accessibilityLabel={`Open recent note: ${title}`}
       accessibilityRole="button"
       onPress={onPress}
       style={({ pressed }) => pressed && styles.pressed}
@@ -27,14 +28,14 @@ export function NotePreviewCard({ note, onPress }: NotePreviewCardProps) {
           <NotebookPen color={colors.info} size={sizing.icon} />
         </View>
         <View style={styles.copy}>
-          <AppText variant="title">{note.title}</AppText>
+          <AppText variant="title">{title}</AppText>
           <AppText numberOfLines={3} tone="secondary">
-            {note.excerpt}
+            {getNotePreview(note)}
           </AppText>
           <View style={styles.metadata}>
             <Clock3 color={colors.textMuted} size={sizing.iconSmall} />
             <AppText tone="muted" variant="caption">
-              {note.updatedLabel}
+              {formatNoteUpdatedAt(note.updated_at)}
             </AppText>
           </View>
         </View>

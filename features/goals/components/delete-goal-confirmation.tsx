@@ -1,0 +1,7 @@
+import { AlertTriangle } from 'lucide-react-native';
+import { Modal, StyleSheet, View } from 'react-native';
+import { AppText, Button } from '@/components/ui';
+import { useAppTheme } from '@/hooks/use-app-theme';
+import { radii, sizing, spacing } from '@/theme';
+export function DeleteGoalConfirmation({ loading, name, onCancel, onConfirm, visible }: { loading: boolean; name: string; onCancel: () => void; onConfirm: () => void; visible: boolean }) { const { colors } = useAppTheme(); return <Modal animationType="fade" onRequestClose={onCancel} transparent visible={visible}><View style={styles.overlay}><View accessibilityViewIsModal style={[styles.dialog, { backgroundColor: colors.surface, borderColor: colors.border }]}><View style={styles.row}><AlertTriangle color={colors.danger} size={sizing.icon} /><AppText variant="heading3">Delete goal?</AppText></View><AppText tone="secondary">“{name}” and all its milestones will be permanently deleted.</AppText><Button disabled={loading} label="Cancel" onPress={onCancel} variant="secondary" /><Button label="Delete permanently" loading={loading} onPress={onConfirm} variant="destructive" /></View></View></Modal>; }
+const styles = StyleSheet.create({ dialog: { borderRadius: radii.large, borderWidth: sizing.border, gap: spacing.md, margin: spacing.lg, padding: spacing.lg }, overlay: { backgroundColor: 'rgba(0,0,0,0.45)', flex: 1, justifyContent: 'center' }, row: { alignItems: 'center', flexDirection: 'row', gap: spacing.sm } });

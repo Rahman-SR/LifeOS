@@ -25,6 +25,15 @@ export function parseLocalDateTime(dateKey: string, timeKey: string): Date | nul
   return date;
 }
 
+export function isLocalDateTimeInFuture(
+  dateKey: string,
+  timeKey: string,
+  now = new Date(),
+): boolean {
+  const dateTime = parseLocalDateTime(dateKey, timeKey);
+  return Boolean(dateTime && dateTime.getTime() > now.getTime());
+}
+
 export function formatDateKey(dateKey: string): string {
   const date = parseLocalDate(dateKey);
   if (!date) return dateKey;

@@ -53,6 +53,7 @@ export function TaskForm({
 }: TaskFormProps) {
   const navigation = useNavigation();
   const allowLeave = useRef(false);
+  const submitLock = useRef(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const {
     control,
@@ -68,17 +69,12 @@ export function TaskForm({
   });
   const dueDate = watch('dueDate');
   const dueTime = watch('dueTime');
+  const reminderEnabled = watch('reminderEnabled');
 
   useEffect(() => {
     if (dueDate) return;
     setValue('dueTime', '');
-    setValue('reminderEnabled', false);
   }, [dueDate, setValue]);
-
-  useEffect(() => {
-    if (dueDate && dueTime) return;
-    setValue('reminderEnabled', false);
-  }, [dueDate, dueTime, setValue]);
 
   useEffect(
     () =>
@@ -105,14 +101,18 @@ export function TaskForm({
   );
 
   const submit = async (values: TaskFormValues) => {
+    if (submitLock.current) return;
+    submitLock.current = true;
     setSubmitError(null);
-    allowLeave.current = true;
     try {
       await onSubmit(toTaskMutationValues(values));
+      allowLeave.current = true;
       reset(values);
     } catch (error) {
       allowLeave.current = false;
       setSubmitError(error instanceof Error ? error.message : 'Task could not be saved.');
+    } finally {
+      submitLock.current = false;
     }
   };
 
@@ -255,8 +255,12 @@ export function TaskForm({
           name="reminderEnabled"
           render={({ field: { onChange, value } }) => (
             <ReminderField
-              disabled={!dueDate || !dueTime}
               error={errors.reminderEnabled?.message}
+              guidance={
+                reminderEnabled && (!dueDate || !dueTime)
+                  ? 'Choose a date and time for the reminder.'
+                  : undefined
+              }
               onChange={onChange}
               value={value}
             />

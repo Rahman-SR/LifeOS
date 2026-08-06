@@ -2,12 +2,13 @@ import { CalendarDays, Target } from 'lucide-react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText, Card, ProgressBar } from '@/components/ui';
-import type { MockGoal } from '@/features/dashboard/dashboard-mock-data';
+import type { GoalWithMilestones } from '@/features/goals';
+import { formatGoalTargetDate } from '@/features/goals';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { radii, sizing, spacing } from '@/theme';
 
 type GoalPreviewCardProps = {
-  goal: MockGoal;
+  goal: GoalWithMilestones;
   onPress: () => void;
 };
 
@@ -16,7 +17,7 @@ export function GoalPreviewCard({ goal, onPress }: GoalPreviewCardProps) {
 
   return (
     <Pressable
-      accessibilityHint="Goal details will be available in a later phase"
+      accessibilityHint="Opens goal details"
       accessibilityLabel={`Open goal: ${goal.title}, ${goal.progress}% complete`}
       accessibilityRole="button"
       onPress={onPress}
@@ -32,7 +33,7 @@ export function GoalPreviewCard({ goal, onPress }: GoalPreviewCardProps) {
             <View style={styles.metadata}>
               <CalendarDays color={colors.textMuted} size={sizing.iconSmall} />
               <AppText tone="muted" variant="caption">
-                {goal.targetLabel}
+                {goal.target_date ? `Target ${formatGoalTargetDate(goal.target_date)}` : 'No target date'}
               </AppText>
             </View>
           </View>

@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { Plus } from 'lucide-react-native';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 
 import { AppHeader, IconButton, Screen } from '@/components/ui';
@@ -23,11 +23,14 @@ export default function TasksScreen() {
   const tasksQuery = useTasks(userId, filter);
   const categoriesQuery = useTaskCategories(userId);
   const toggleMutation = useToggleTaskMutation(userId);
+  const toggleTaskAsync = toggleMutation.mutateAsync;
+  const refetchTasks = tasksQuery.refetch;
+  const refetchCategories = categoriesQuery.refetch;
 
-  const toggleTask = async (taskId: string, completed: boolean) => {
+  const toggleTask = useCallback(async (taskId: string, completed: boolean) => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
     try {
-      const result = await toggleMutation.mutateAsync({ completed, taskId });
+      const result = await toggleTaskAsync({ completed, taskId });
       if (result.reminderWarning) Alert.alert('Reminder update', result.reminderWarning);
     } catch (error) {
       Alert.alert(
@@ -35,16 +38,19 @@ export default function TasksScreen() {
         error instanceof Error ? error.message : 'Please try again.',
       );
     }
-  };
+  }, [toggleTaskAsync]);
 
-  const refresh = async () => {
-    await Promise.all([tasksQuery.refetch(), categoriesQuery.refetch()]);
-  };
+  const refresh = useCallback(async () => {
+    await Promise.all([refetchTasks(), refetchCategories()]);
+  }, [refetchCategories, refetchTasks]);
+  const createTask = useCallback(() => router.push('/tasks/create'), []);
+  const openTask = useCallback((taskId: string) => router.push(`/tasks/${taskId}`), []);
+  const retryTasks = useCallback(() => { void refetchTasks(); }, [refetchTasks]);
 
   return (
     <Screen contentContainerStyle={styles.screen} scroll={false}>
       <AppHeader
-        action={<IconButton icon={Plus} label="Create task" onPress={() => router.push('/tasks/create')} />}
+        action={<IconButton icon={Plus} label="Create task" onPress={createTask} />}
         eyebrow="PLAN"
         subtitle="Keep the next action clear and manageable."
         title="Tasks"
@@ -61,12 +67,12 @@ export default function TasksScreen() {
           }
           filter={filter}
           isLoading={tasksQuery.isLoading}
-          onCreate={() => router.push('/tasks/create')}
-          onOpen={(taskId) => router.push(`/tasks/${taskId}`)}
-          onRefresh={() => void refresh()}
-          onRetry={() => void tasksQuery.refetch()}
-          onToggle={(taskId, completed) => void toggleTask(taskId, completed)}
-          refreshing={tasksQuery.isRefetching}
+          onCreate={createTask}
+          onOpen={openTask}
+          onRefresh={refresh}
+          onRetry={retryTasks}
+          onToggle={toggleTask}
+          refreshing={tasksQuery.isRefetching && !tasksQuery.isLoading}
           tasks={tasksQuery.data ?? []}
         />
       </View>

@@ -5,6 +5,7 @@ import {
   PlusCircle,
   Repeat2,
   Smile,
+  Target,
   X,
   type LucideIcon,
 } from 'lucide-react-native';
@@ -15,7 +16,7 @@ import { AppText, IconButton } from '@/components/ui';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { radii, sizing, spacing } from '@/theme';
 
-export type QuickAddAction = 'habit' | 'journal' | 'mood' | 'note' | 'task';
+export type QuickAddAction = 'goal' | 'habit' | 'journal' | 'mood' | 'note' | 'task';
 
 type ActionItem = {
   icon: LucideIcon;
@@ -29,6 +30,7 @@ const actions: ActionItem[] = [
   { icon: NotebookPen, id: 'note', label: 'Add Note' },
   { icon: Smile, id: 'mood', label: 'Record Mood' },
   { icon: BookHeart, id: 'journal', label: 'Write Journal' },
+  { icon: Target, id: 'goal', label: 'Add Goal' },
 ];
 
 type QuickAddSheetProps = {
@@ -80,7 +82,7 @@ export function QuickAddSheet({ onClose, onSelect, visible }: QuickAddSheetProps
           <View style={styles.actions}>
             {actions.map(({ icon: Icon, id, label }) => (
               <Pressable
-                accessibilityHint="Available in the next feature phase"
+                accessibilityHint={`Open ${label}`}
                 accessibilityLabel={label}
                 accessibilityRole="button"
                 key={id}

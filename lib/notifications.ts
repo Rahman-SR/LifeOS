@@ -4,6 +4,8 @@ import { Platform } from 'react-native';
 
 const reminderMapKey = 'lifeos.task-reminder-identifiers';
 const taskReminderChannel = 'task-reminders';
+const habitReminderMapKey = 'lifeos.habit-reminder-identifiers';
+const habitReminderChannel = 'habit-reminders';
 
 type ReminderMap = Record<string, string>;
 
@@ -41,9 +43,14 @@ async function configureAndroidChannel(): Promise<void> {
     name: 'Task reminders',
     vibrationPattern: [0, 250, 250, 250],
   });
+  await Notifications.setNotificationChannelAsync(habitReminderChannel, {
+    importance: Notifications.AndroidImportance.DEFAULT,
+    name: 'Habit reminders',
+    vibrationPattern: [0, 250, 250, 250],
+  });
 }
 
-async function requestReminderPermission(): Promise<void> {
+export async function requestReminderPermission(): Promise<void> {
   if (Platform.OS === 'web') {
     throw new Error('Task reminders are available on Android and iPhone.');
   }
@@ -54,8 +61,24 @@ async function requestReminderPermission(): Promise<void> {
 
   const requested = await Notifications.requestPermissionsAsync();
   if (requested.status !== 'granted') {
-    throw new Error('Notification permission was not granted. The task was saved without a reminder.');
+    throw new Error('Notification permission was not granted.');
   }
+}
+
+type HabitReminderMap = Record<string, string[]>;
+
+async function readHabitReminderMap(): Promise<HabitReminderMap> {
+  const stored = await SecureStore.getItemAsync(habitReminderMapKey);
+  if (!stored) return {};
+  try {
+    return JSON.parse(stored) as HabitReminderMap;
+  } catch {
+    return {};
+  }
+}
+
+async function writeHabitReminderMap(map: HabitReminderMap): Promise<void> {
+  await SecureStore.setItemAsync(habitReminderMapKey, JSON.stringify(map));
 }
 
 export async function scheduleTaskReminder(
@@ -112,4 +135,55 @@ export async function cancelTaskReminder(taskId: string): Promise<void> {
   await Notifications.cancelScheduledNotificationAsync(identifier);
   delete map[taskId];
   await writeReminderMap(map);
+}
+
+export async function scheduleHabitReminders(
+  habitId: string,
+  name: string,
+  frequencyType: 'daily' | 'weekly',
+  weekdays: number[],
+  reminderTime: string,
+): Promise<void> {
+  const match = /^(\d{2}):(\d{2})/.exec(reminderTime);
+  if (!match) throw new Error('Choose a valid habit reminder time.');
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+  await requestReminderPermission();
+
+  const triggers: Notifications.SchedulableNotificationTriggerInput[] =
+    frequencyType === 'daily'
+      ? [{ channelId: Platform.OS === 'android' ? habitReminderChannel : undefined, hour, minute, type: Notifications.SchedulableTriggerInputTypes.DAILY }]
+      : weekdays.map((weekday) => ({
+          channelId: Platform.OS === 'android' ? habitReminderChannel : undefined,
+          hour,
+          minute,
+          type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
+          weekday: weekday + 1,
+        }));
+
+  const newIdentifiers: string[] = [];
+  try {
+    for (const trigger of triggers) {
+      newIdentifiers.push(await Notifications.scheduleNotificationAsync({
+        content: { body: 'A small step keeps your habit moving.', data: { habitId }, title: name },
+        trigger,
+      }));
+    }
+
+    const map = await readHabitReminderMap();
+    await Promise.all((map[habitId] ?? []).map((id) => Notifications.cancelScheduledNotificationAsync(id)));
+    map[habitId] = newIdentifiers;
+    await writeHabitReminderMap(map);
+  } catch (error) {
+    await Promise.all(newIdentifiers.map((id) => Notifications.cancelScheduledNotificationAsync(id).catch(() => undefined)));
+    throw error;
+  }
+}
+
+export async function cancelHabitReminders(habitId: string): Promise<void> {
+  if (Platform.OS === 'web') return;
+  const map = await readHabitReminderMap();
+  await Promise.all((map[habitId] ?? []).map((id) => Notifications.cancelScheduledNotificationAsync(id)));
+  delete map[habitId];
+  await writeHabitReminderMap(map);
 }

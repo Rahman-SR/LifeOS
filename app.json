@@ -4,19 +4,36 @@
     "slug": "lifeos",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/brand/icons/lifeos-app-icon.png",
     "scheme": "lifeos",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "icon": "./assets/brand/icons/lifeos-ios-icon.png"
     },
     "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/brand/icons/lifeos-android-adaptive-foreground.png",
+        "monochromeImage": "./assets/brand/icons/lifeos-android-monochrome.png",
+        "backgroundColor": "#081331"
+      },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "bundler": "metro",
-      "output": "static"
+      "output": "static",
+      "favicon": "./assets/brand/icons/lifeos-favicon-64.png"
+    },
+    "splash": {
+      "image": "./assets/brand/icons/lifeos-splash-logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF",
+      "dark": {
+        "image": "./assets/brand/icons/lifeos-splash-logo-dark.png",
+        "backgroundColor": "#081331"
+      }
     },
     "plugins": [
       "expo-router",

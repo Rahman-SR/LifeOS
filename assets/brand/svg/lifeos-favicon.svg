@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="28 28 184 184" role="img" aria-label="LifeOS logo">
+
+
+  <defs>
+    <linearGradient id="fav-orbit" x1="35" y1="35" x2="205" y2="205" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#02B6E8"/>
+      <stop offset="0.48" stop-color="#1478FF"/>
+      <stop offset="1" stop-color="#6D28D9"/>
+    </linearGradient>
+    <linearGradient id="fav-core" x1="96" y1="94" x2="145" y2="151" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#02B6E8"/>
+      <stop offset="0.5" stop-color="#1478FF"/>
+      <stop offset="1" stop-color="#6D28D9"/>
+    </linearGradient>
+  </defs>
+  <circle cx="120" cy="120" r="76" fill="none" stroke="url(#fav-orbit)" stroke-width="18" stroke-linecap="round" stroke-dasharray="397.935 79.587"/>
+  <circle cx="120" cy="120" r="28" fill="url(#fav-core)"/>
+  <circle cx="173.740" cy="66.260" r="6" fill="#18C981"/>
+</svg>

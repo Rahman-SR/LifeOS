@@ -1,8 +1,30 @@
 # LifeOS
 
-LifeOS is a calm, cross-platform daily management app built with Expo and React Native. This repository contains the Expo SDK 54 foundation, completed email/password authentication, the authenticated Today dashboard, and real Supabase-backed task management.
+LifeOS is a calm, cross-platform daily management app built with Expo and React Native. This repository contains the Expo SDK 54 foundation, completed email/password authentication, the authenticated Today dashboard, and real Supabase-backed task, habit, note, mood, journal, goal, and milestone management.
 
-The Today task preview and progress counts use real task data. Habits, notes, mood, journal, and goals remain temporary dashboard mock data. Their feature logic, statistics, and remote push notifications remain intentionally deferred. The database foundation is defined as versioned Supabase migrations with Row Level Security.
+The Today task, habit, recent-note, mood, journal, and primary-goal previews use real Supabase data. Advanced statistics and remote push notifications remain intentionally deferred. The database foundation is defined as versioned Supabase migrations with Row Level Security.
+
+## Goals and milestones
+
+Goals support Active, Completed, Paused, and Archived views; create, edit, detail, status, manual progress, archive, restore, and permanent-delete actions; and ordered milestones with completion tracking. Completing a goal sets progress to 100% and records `completed_at`. Milestone completion never silently changes the goal's manual progress; the details screen offers an explicit “Use milestone progress” action instead.
+
+Goal and milestone creation/editing is saved atomically through a security-invoker database function. Existing owner-only RLS remains authoritative, and the milestone composite foreign key prevents a milestone from being attached to another user's goal.
+
+## Mood and journal
+
+Mood tracking stores one owner-scoped text mood per profile-local date, supports editing today, and provides recent history with weekly and monthly distributions. Daily journal entries use the same local-date rule, support explicit create/update saves, reflection prompts, history search, editing, and confirmed deletion. The unique `(user_id, date)` constraints prevent duplicates while RLS restricts every operation to the authenticated owner.
+
+## Notes management
+
+The Notes tab provides All, Pinned, Recent, and Archived views; debounced title/content search; create, edit, detail, permanent-delete, pin, unpin, archive, and restore flows; pull to refresh; and owner-scoped Supabase queries protected by RLS. Notes require at least a non-whitespace title or content, use explicit saves, warn before discarding edits, and prevent repeated submissions.
+
+Normal views place pinned notes first and then sort by the latest update. Archived notes are fetched only for the Archived view. The Today dashboard independently shows the most recently updated active note, and Quick Add opens the real note editor.
+
+## Habit tracking
+
+The Habits tab provides Today, All habits, and Archived views; create, edit, detail, archive, restore, and permanent-delete flows; daily and selected-weekday schedules; target counts; local reminders; recent history; completion rate; and current/best streaks. Habit completion uses one owner-scoped log per local calendar date and an atomic database function capped at the habit target.
+
+Weekdays use the project convention: **Sunday is 0 and Saturday is 6**. The UI exposes only `daily` and selected weekdays (`weekly` in the live database). Monthly and custom recurrence remain out of scope.
 
 ## Task management
 
@@ -12,11 +34,17 @@ Task reminder identifiers are stored locally with Expo SecureStore. Notification
 
 ## Today dashboard shell
 
-The Today tab includes the personalized greeting, current date, daily progress, task and habit previews, reflection shortcuts, active goal, recent note, pull-to-refresh, and quick-add sheet. Mock completion controls update only in memory and reset when the dashboard refreshes or the app reloads. Quick-add and preview actions intentionally show a next-phase message instead of opening feature forms.
+The Today tab includes the personalized greeting, current date, real task and habit progress, reflection shortcuts, primary active goal, recent note, pull-to-refresh, and quick-add sheet. Quick Add opens the real Task, Habit, Note, Mood, Journal, and Goal flows.
+
+## List UI and navigation
+
+Tasks, Habits, and Notes share a compact horizontal filter-chip row and lightweight list-card primitives. Selected filters use a filled semantic state and automatically remain visible on narrow screens. Cards keep completion, status, and overflow actions at least 44 x 44 points while reducing unused vertical space.
+
+Bottom tabs use per-feature semantic accents, keep the default no-animation transition explicit, and freeze inactive native screens. TanStack Query keeps successful data fresh for two minutes and cached for fifteen minutes so normal tab switching can reuse already-loaded data without an unnecessary full-screen loader.
 
 ## Requirements
 
-- Node.js 20.19 or newer
+- Node.js 22 or newer
 - npm
 - Expo Go with SDK 54 support on an Android or iOS device
 - A Supabase project when you are ready to connect authentication and data
@@ -74,6 +102,8 @@ The `handle_new_user` database trigger creates the profile and notification-pref
 
 The migration at `supabase/migrations/20260803081527_create_lifeos_schema.sql` creates the LifeOS tables, indexes, ownership constraints, profile bootstrap trigger, minimal grants, and Row Level Security policies. The authentication migration adds the profile onboarding-completion flag.
 
+The Phase 7 migration at `supabase/migrations/20260804083222_align_mood_and_journal_schema.sql` converts legacy numeric mood rows to the documented text mood values, renames the daily mood date column, adds the three journal reflection fields, and adds history indexes. The Phase 8 migration at `supabase/migrations/20260806102625_add_goal_completion_and_save_rpc.sql` adds goal completion timestamps, lifecycle checks, indexes, and the transactional goal-with-milestones save function. Apply both before testing these features. Existing owner RLS policies and authenticated table grants remain unchanged.
+
 ### Option A: Supabase CLI
 
 1. Sign in and link this folder to the same project referenced by `.env`:
@@ -107,7 +137,7 @@ Because SQL Editor does not add the file to the CLI migration history, mark this
 ```bash
 npx supabase login
 npx supabase link --project-ref YOUR_PROJECT_REF
-npx supabase migration repair --status applied 20260803081527 20260803091445 20260803123521
+npx supabase migration repair --status applied 20260803081527 20260803091445 20260803123521 20260804042839 20260804052243 20260804083222 20260806102625
 ```
 
 Do not rerun the same migration in SQL Editor after it succeeds. Future schema changes must use new timestamped migration files created with `npx supabase migration new <name>`.
@@ -117,6 +147,7 @@ Do not rerun the same migration in SQL Editor after it succeeds. Future schema c
 ```bash
 npm run typecheck
 npm run lint
+npm test
 npx expo install --check
 ```
 
@@ -129,6 +160,11 @@ app/                 Expo Router routes and route groups
 components/          Reusable UI and feedback components
 features/auth/        Authentication forms, validation, storage, and services
 features/tasks/       Task UI, validation, services, queries, and mutations
+features/habits/      Habit UI, schedules, streaks, services, queries, and mutations
+features/notes/       Note UI, validation, search, services, queries, and mutations
+features/mood/        Daily mood check-in, history, summaries, services, and queries
+features/journal/     Daily journal editor, history, search, services, and queries
+features/goals/       Goal and milestone UI, validation, summaries, services, queries, and mutations
 hooks/               Shared application hooks
 lib/                 Supabase, TanStack Query, and local notification configuration
 providers/           Root application providers

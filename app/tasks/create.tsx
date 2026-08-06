@@ -10,7 +10,7 @@ import { spacing } from '@/theme';
 
 export default function CreateTaskScreen() {
   const { user } = useAuth();
-  const userId = user!.id;
+  const userId = user?.id ?? '';
   const categoriesQuery = useTaskCategories(userId);
   const createMutation = useCreateTaskMutation(userId);
 
@@ -38,7 +38,7 @@ export default function CreateTaskScreen() {
             Alert.alert(
               'Task created',
               result.reminderWarning
-                ? `The task was saved. ${result.reminderWarning}`
+                ? `Task saved, but the reminder could not be scheduled. ${result.reminderWarning}`
                 : 'Your task is ready.',
               [{ onPress: () => router.back(), text: 'Done' }],
             );

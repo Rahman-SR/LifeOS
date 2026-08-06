@@ -1,0 +1,7 @@
+import { Pressable, StyleSheet, View } from 'react-native';
+import { AppText } from '@/components/ui';
+import { useAppTheme } from '@/hooks/use-app-theme';
+import { radii, sizing, spacing } from '@/theme';
+const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+export function WeekdaySelector({ error, onChange, value }: { error?: string; onChange: (days: number[]) => void; value: number[] }) { const { colors } = useAppTheme(); return <View style={styles.field}><View style={styles.row}>{days.map((label, day) => { const selected = value.includes(day); return <Pressable accessibilityLabel={label} accessibilityRole="checkbox" accessibilityState={{ checked: selected }} key={label} onPress={() => onChange(selected ? value.filter((item) => item !== day) : [...value, day].sort())} style={[styles.day, { backgroundColor: selected ? colors.primary : colors.surface, borderColor: selected ? colors.primary : colors.border }]}><AppText tone={selected ? 'inverse' : 'secondary'} variant="caption">{label.slice(0, 1)}</AppText></Pressable>; })}</View><AppText tone="secondary" variant="caption">Sunday is 0; Saturday is 6.</AppText>{error ? <AppText accessibilityRole="alert" tone="danger" variant="bodySmall">{error}</AppText> : null}</View>; }
+const styles = StyleSheet.create({ day: { alignItems: 'center', borderRadius: radii.pill, borderWidth: sizing.border, height: sizing.touchTarget, justifyContent: 'center', width: sizing.touchTarget }, field: { gap: spacing.xs }, row: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xxs } });

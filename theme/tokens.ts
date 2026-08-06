@@ -82,11 +82,18 @@ export const typography = {
 export const sizing = {
   touchTarget: 44,
   controlHeight: 48,
+  filterChipHeight: 44,
+  badgeHeight: 24,
+  compactIconContainer: 36,
+  tabIconContainerHeight: 32,
+  tabIconContainerWidth: 40,
   iconSmall: 16,
   icon: 22,
   iconLarge: 32,
   progressBar: 8,
+  progressBarCompact: 4,
   border: 1,
+  accentBorder: 4,
 } as const;
 
 export const shadows = {
@@ -95,5 +102,39 @@ export const shadows = {
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },
     elevation: 2,
+  },
+  listCard: {
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+  },
+  tabBar: {
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: -2 },
+    elevation: 4,
+  },
+} as const;
+
+export const animationDurations = {
+  fast: 150,
+  standard: 200,
+} as const;
+
+export const tabAccentTokens = {
+  light: {
+    today: { accent: '#5B67F1', surface: '#EEF0FF' },
+    tasks: { accent: '#2E90FA', surface: '#EAF4FF' },
+    habits: { accent: '#12B76A', surface: '#EAFBF2' },
+    notes: { accent: '#7F56D9', surface: '#F3EEFF' },
+    profile: { accent: '#F79009', surface: '#FFF4E5' },
+  },
+  dark: {
+    today: { accent: '#7C86FF', surface: '#252A52' },
+    tasks: { accent: '#53B1FD', surface: '#17344D' },
+    habits: { accent: '#32D583', surface: '#163B2B' },
+    notes: { accent: '#9B8AFB', surface: '#332552' },
+    profile: { accent: '#FDB022', surface: '#473417' },
   },
 } as const;

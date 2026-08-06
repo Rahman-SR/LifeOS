@@ -27,6 +27,20 @@ const defaultCategories = [
   { color: '#F04438', icon: 'shopping-bag', name: 'Shopping', position: 4 },
 ] as const;
 
+async function confirmSelectedCategory(userId: string, categoryId: string | null): Promise<void> {
+  if (!categoryId) return;
+
+  const { data, error } = await getSupabaseClient()
+    .from('task_categories')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('id', categoryId)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) throw new Error('The selected category is unavailable. Refresh and choose it again.');
+}
+
 export async function fetchTaskCategories(userId: string): Promise<TaskCategory[]> {
   const client = getSupabaseClient();
   const { data: existing, error: existingError } = await client
@@ -113,6 +127,9 @@ export async function createTask(
   userId: string,
   values: TaskMutationValues,
 ): Promise<TaskWithCategory> {
+  if (!userId) throw new Error('Your session is not ready. Please sign in again.');
+  await confirmSelectedCategory(userId, values.category_id);
+
   const { data, error } = await getSupabaseClient()
     .from('tasks')
     .insert({
@@ -134,6 +151,9 @@ export async function updateTask(
   taskId: string,
   values: TaskUpdate,
 ): Promise<TaskWithCategory> {
+  if (!userId) throw new Error('Your session is not ready. Please sign in again.');
+  if ('category_id' in values) await confirmSelectedCategory(userId, values.category_id ?? null);
+
   const { data, error } = await getSupabaseClient()
     .from('tasks')
     .update(values)

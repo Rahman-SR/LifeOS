@@ -1,7 +1,8 @@
 import { Circle, RotateCcw } from 'lucide-react-native';
+import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { AppText, Card } from '@/components/ui';
+import { AppListCard, AppText, MetadataRow } from '@/components/ui';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { radii, sizing, spacing } from '@/theme';
 
@@ -17,34 +18,35 @@ type TaskCardProps = {
   task: TaskWithCategory;
 };
 
-export function TaskCard({ compact = false, onOpen, onToggle, task }: TaskCardProps) {
+function TaskCardComponent({ compact = false, onOpen, onToggle, task }: TaskCardProps) {
   const { colors } = useAppTheme();
-  const nextCompleted = !task.is_completed;
+  const priority = task.priority as TaskPriority;
+  const priorityColor = { high: colors.danger, low: colors.info, medium: colors.warning }[priority];
 
   return (
-    <Card style={styles.card}>
+    <AppListCard accentColor={priorityColor} completed={task.is_completed} style={styles.card}>
       <Pressable
-        accessibilityLabel={
-          task.is_completed ? `Restore task: ${task.title}` : `Complete task: ${task.title}`
-        }
+        accessibilityLabel={task.is_completed ? `Restore task: ${task.title}` : `Complete task: ${task.title}`}
         accessibilityRole="checkbox"
         accessibilityState={{ checked: task.is_completed }}
-        hitSlop={spacing.xs}
-        onPress={() => onToggle(task.id, nextCompleted)}
-        style={({ pressed }) => [
-          styles.completion,
-          {
-            backgroundColor: task.is_completed ? colors.success : colors.surface,
-            borderColor: task.is_completed ? colors.success : colors.border,
-            opacity: pressed ? 0.7 : 1,
-          },
-        ]}
+        onPress={() => onToggle(task.id, !task.is_completed)}
+        style={({ pressed }) => [styles.completionTarget, pressed && styles.pressed]}
       >
-        {task.is_completed ? (
-          <RotateCcw color={colors.onPrimary} size={sizing.iconSmall} strokeWidth={2.5} />
-        ) : (
-          <Circle color={colors.textMuted} size={sizing.iconSmall} />
-        )}
+        <View
+          style={[
+            styles.completionVisual,
+            {
+              backgroundColor: task.is_completed ? colors.success : colors.surface,
+              borderColor: task.is_completed ? colors.success : colors.border,
+            },
+          ]}
+        >
+          {task.is_completed ? (
+            <RotateCcw color={colors.onPrimary} size={sizing.iconSmall} strokeWidth={2.5} />
+          ) : (
+            <Circle color={colors.textMuted} size={sizing.iconSmall} />
+          )}
+        </View>
       </Pressable>
 
       <Pressable
@@ -55,57 +57,46 @@ export function TaskCard({ compact = false, onOpen, onToggle, task }: TaskCardPr
         style={({ pressed }) => [styles.copy, pressed && styles.pressed]}
       >
         <AppText
-          numberOfLines={compact ? 2 : 3}
-          style={task.is_completed ? [styles.completedTitle, { color: colors.textMuted }] : undefined}
+          numberOfLines={compact ? 1 : 2}
+          style={task.is_completed ? styles.completedTitle : undefined}
           variant="bodyLarge"
         >
           {task.title}
         </AppText>
-        <View style={styles.metadata}>
-          <DueDateLabel
-            dueDate={task.due_date}
-            dueTime={task.due_time}
-            isCompleted={task.is_completed}
-          />
-          <PriorityBadge priority={task.priority as TaskPriority} />
-          {task.task_categories ? (
-            <CategoryChip color={task.task_categories.color} label={task.task_categories.name} />
-          ) : null}
+        <View style={styles.metadataStack}>
+          <DueDateLabel dueDate={task.due_date} dueTime={task.due_time} isCompleted={task.is_completed} />
+          <MetadataRow>
+            <PriorityBadge priority={priority} />
+            {task.task_categories ? (
+              <CategoryChip color={task.task_categories.color} label={task.task_categories.name} />
+            ) : null}
+          </MetadataRow>
         </View>
       </Pressable>
-    </Card>
+    </AppListCard>
   );
 }
 
+export const TaskCard = memo(TaskCardComponent);
+
 const styles = StyleSheet.create({
-  card: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  completedTitle: {
-    textDecorationLine: 'line-through',
-  },
-  completion: {
+  card: { alignItems: 'center', flexDirection: 'row', gap: spacing.xs },
+  completedTitle: { textDecorationLine: 'line-through' },
+  completionTarget: {
     alignItems: 'center',
-    borderRadius: radii.pill,
-    borderWidth: sizing.border,
     height: sizing.touchTarget,
     justifyContent: 'center',
     width: sizing.touchTarget,
   },
-  copy: {
-    flex: 1,
-    gap: spacing.xs,
-    minHeight: sizing.touchTarget,
-  },
-  metadata: {
+  completionVisual: {
     alignItems: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.xs,
+    borderRadius: radii.pill,
+    borderWidth: sizing.border,
+    height: sizing.badgeHeight,
+    justifyContent: 'center',
+    width: sizing.badgeHeight,
   },
-  pressed: {
-    opacity: 0.7,
-  },
+  copy: { flex: 1, gap: spacing.xs, minHeight: sizing.touchTarget, justifyContent: 'center' },
+  metadataStack: { gap: spacing.xxs },
+  pressed: { opacity: 0.7 },
 });

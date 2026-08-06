@@ -14,6 +14,11 @@ function RootNavigator() {
       <Stack.Protected guard={Boolean(session)}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="tasks" />
+        <Stack.Screen name="habits" />
+        <Stack.Screen name="notes" />
+        <Stack.Screen name="mood" />
+        <Stack.Screen name="journal" />
+        <Stack.Screen name="goals" />
       </Stack.Protected>
       <Stack.Protected guard={!session && !hasCompletedOnboarding}>
         <Stack.Screen name="onboarding" />

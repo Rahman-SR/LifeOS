@@ -1,4 +1,6 @@
+import { useCallback } from 'react';
 import { FlatList, RefreshControl, StyleSheet } from 'react-native';
+import type { ListRenderItem } from 'react-native';
 
 import { ErrorState, LoadingState } from '@/components/feedback';
 import { useAppTheme } from '@/hooks/use-app-theme';
@@ -34,6 +36,10 @@ export function TaskList({
   tasks,
 }: TaskListProps) {
   const { colors } = useAppTheme();
+  const renderTask = useCallback<ListRenderItem<TaskWithCategory>>(
+    ({ item }) => <TaskCard onOpen={onOpen} onToggle={onToggle} task={item} />,
+    [onOpen, onToggle],
+  );
 
   if (isLoading) return <LoadingState label="Loading tasks…" />;
   if (error) return <ErrorState description={error} onRetry={onRetry} title="Tasks could not be loaded" />;
@@ -53,7 +59,7 @@ export function TaskList({
           tintColor={colors.primary}
         />
       }
-      renderItem={({ item }) => <TaskCard onOpen={onOpen} onToggle={onToggle} task={item} />}
+      renderItem={renderTask}
       showsVerticalScrollIndicator={false}
       style={styles.list}
     />

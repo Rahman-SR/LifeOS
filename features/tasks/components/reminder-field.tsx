@@ -6,13 +6,13 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 import { sizing, spacing } from '@/theme';
 
 type ReminderFieldProps = {
-  disabled?: boolean;
   error?: string;
+  guidance?: string;
   onChange: (enabled: boolean) => void;
   value: boolean;
 };
 
-export function ReminderField({ disabled = false, error, onChange, value }: ReminderFieldProps) {
+export function ReminderField({ error, guidance, onChange, value }: ReminderFieldProps) {
   const { colors } = useAppTheme();
 
   return (
@@ -27,8 +27,7 @@ export function ReminderField({ disabled = false, error, onChange, value }: Remi
         </View>
         <Switch
           accessibilityLabel="Enable task reminder"
-          accessibilityState={{ disabled }}
-          disabled={disabled}
+          accessibilityState={{ checked: value }}
           onValueChange={onChange}
           thumbColor={value ? colors.onPrimary : colors.textMuted}
           trackColor={{ false: colors.surfaceSecondary, true: colors.primary }}
@@ -38,6 +37,10 @@ export function ReminderField({ disabled = false, error, onChange, value }: Remi
       {error ? (
         <AppText accessibilityRole="alert" tone="danger" variant="bodySmall">
           {error}
+        </AppText>
+      ) : guidance ? (
+        <AppText accessibilityLiveRegion="polite" tone="secondary" variant="bodySmall">
+          {guidance}
         </AppText>
       ) : null}
     </View>

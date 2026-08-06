@@ -6,9 +6,10 @@ import { radii, sizing } from '@/theme';
 type ProgressBarProps = {
   accessibilityLabel?: string;
   progress: number;
+  variant?: 'compact' | 'default';
 };
 
-export function ProgressBar({ accessibilityLabel = 'Progress', progress }: ProgressBarProps) {
+export function ProgressBar({ accessibilityLabel = 'Progress', progress, variant = 'default' }: ProgressBarProps) {
   const { colors } = useAppTheme();
   const normalizedProgress = Math.min(1, Math.max(0, progress));
 
@@ -17,7 +18,11 @@ export function ProgressBar({ accessibilityLabel = 'Progress', progress }: Progr
       accessibilityLabel={accessibilityLabel}
       accessibilityRole="progressbar"
       accessibilityValue={{ max: 100, min: 0, now: Math.round(normalizedProgress * 100) }}
-      style={[styles.track, { backgroundColor: colors.surfaceSecondary }]}
+      style={[
+        styles.track,
+        variant === 'compact' && styles.compactTrack,
+        { backgroundColor: colors.surfaceSecondary },
+      ]}
     >
       <View
         style={[
@@ -30,6 +35,7 @@ export function ProgressBar({ accessibilityLabel = 'Progress', progress }: Progr
 }
 
 const styles = StyleSheet.create({
+  compactTrack: { height: sizing.progressBarCompact },
   fill: {
     borderRadius: radii.pill,
     height: '100%',

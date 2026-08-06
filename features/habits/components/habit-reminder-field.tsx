@@ -1,0 +1,10 @@
+import { BellRing } from 'lucide-react-native';
+import { useState } from 'react';
+import { StyleSheet, Switch, View } from 'react-native';
+import { AppText, Card } from '@/components/ui';
+import { TimePickerField } from '@/features/tasks';
+import { useAppTheme } from '@/hooks/use-app-theme';
+import { requestReminderPermission } from '@/lib/notifications';
+import { sizing, spacing } from '@/theme';
+export function HabitReminderField({ enabled, error, onEnabledChange, onTimeChange, time }: { enabled: boolean; error?: string; onEnabledChange: (value: boolean) => void; onTimeChange: (value: string) => void; time: string }) { const { colors } = useAppTheme(); const [permissionWarning, setPermissionWarning] = useState<string | null>(null); const toggle = (value: boolean) => { onEnabledChange(value); setPermissionWarning(null); if (value) void requestReminderPermission().catch((e: unknown) => setPermissionWarning(e instanceof Error ? e.message : 'Notification permission was not granted.')); }; return <View style={styles.field}><Card style={styles.card}><BellRing color={colors.primary} size={sizing.icon} /><View style={styles.copy}><AppText variant="title">Remind me</AppText><AppText tone="secondary" variant="bodySmall">Schedule a local reminder for this habit.</AppText></View><Switch accessibilityLabel="Enable habit reminder" accessibilityState={{ checked: enabled }} onValueChange={toggle} thumbColor={enabled ? colors.onPrimary : colors.textMuted} trackColor={{ false: colors.surfaceSecondary, true: colors.primary }} value={enabled} /></Card>{enabled ? <TimePickerField error={error} label="Reminder time" onChange={onTimeChange} value={time} /> : null}{permissionWarning ? <AppText accessibilityLiveRegion="polite" tone="danger" variant="bodySmall">{permissionWarning} You can still save the habit.</AppText> : null}</View>; }
+const styles = StyleSheet.create({ card: { alignItems: 'center', flexDirection: 'row', gap: spacing.sm }, copy: { flex: 1, gap: spacing.xxs }, field: { gap: spacing.xs } });

@@ -20,7 +20,7 @@ export default function EditTaskScreen() {
   const { user } = useAuth();
   const params = useLocalSearchParams<{ id?: string }>();
   const taskId = typeof params.id === 'string' ? params.id : undefined;
-  const userId = user!.id;
+  const userId = user?.id ?? '';
   const taskQuery = useTask(userId, taskId);
   const categoriesQuery = useTaskCategories(userId);
   const updateMutation = useUpdateTaskMutation(userId, taskId ?? 'missing');
@@ -71,7 +71,7 @@ export default function EditTaskScreen() {
             Alert.alert(
               'Task updated',
               result.reminderWarning
-                ? `Your changes were saved. ${result.reminderWarning}`
+                ? `Task saved, but the reminder could not be scheduled. ${result.reminderWarning}`
                 : 'Your changes were saved.',
               [{ onPress: () => router.back(), text: 'Done' }],
             );

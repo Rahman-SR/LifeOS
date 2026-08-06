@@ -254,22 +254,25 @@ export type Database = {
       mood_logs: TableDefinition<
         UserOwned & Timestamps & {
           id: string;
-          log_date: string;
-          mood_score: number;
+          mood_date: string;
+          mood: string;
+          mood_score: number | null;
           note: string | null;
         },
         UserOwned & {
           id?: string;
-          log_date: string;
-          mood_score: number;
+          mood_date: string;
+          mood: string;
+          mood_score?: number | null;
           note?: string | null;
           created_at?: string;
           updated_at?: string;
         },
         Partial<UserOwned & Timestamps & {
           id: string;
-          log_date: string;
-          mood_score: number;
+          mood_date: string;
+          mood: string;
+          mood_score: number | null;
           note: string | null;
         }>
       >;
@@ -280,6 +283,9 @@ export type Database = {
           title: string | null;
           content: string;
           mood_score: number | null;
+          went_well: string | null;
+          was_difficult: string | null;
+          improve_tomorrow: string | null;
         },
         UserOwned & {
           id?: string;
@@ -287,6 +293,9 @@ export type Database = {
           title?: string | null;
           content?: string;
           mood_score?: number | null;
+          went_well?: string | null;
+          was_difficult?: string | null;
+          improve_tomorrow?: string | null;
           created_at?: string;
           updated_at?: string;
         },
@@ -296,6 +305,9 @@ export type Database = {
           title: string | null;
           content: string;
           mood_score: number | null;
+          went_well: string | null;
+          was_difficult: string | null;
+          improve_tomorrow: string | null;
         }>
       >;
       goals: TableDefinition<
@@ -307,6 +319,7 @@ export type Database = {
           status: string;
           progress: number;
           color: string | null;
+          completed_at: string | null;
         },
         UserOwned & {
           id?: string;
@@ -316,6 +329,7 @@ export type Database = {
           status?: string;
           progress?: number;
           color?: string | null;
+          completed_at?: string | null;
           created_at?: string;
           updated_at?: string;
         },
@@ -327,6 +341,7 @@ export type Database = {
           status: string;
           progress: number;
           color: string | null;
+          completed_at: string | null;
         }>
       >;
       goal_milestones: TableDefinition<
@@ -391,7 +406,34 @@ export type Database = {
       >;
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      adjust_habit_completion: {
+        Args: { p_delta: number; p_habit_id: string; p_log_date: string };
+        Returns: number;
+      };
+      save_goal_with_milestones: {
+        Args: {
+          p_completed_at: string | null;
+          p_description: string | null;
+          p_goal_id: string | null;
+          p_milestones: Json;
+          p_progress: number;
+          p_status: string;
+          p_target_date: string | null;
+          p_title: string;
+        };
+        Returns: UserOwned & Timestamps & {
+          id: string;
+          title: string;
+          description: string | null;
+          target_date: string | null;
+          status: string;
+          progress: number;
+          color: string | null;
+          completed_at: string | null;
+        };
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };
